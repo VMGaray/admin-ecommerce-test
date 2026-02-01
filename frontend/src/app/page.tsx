@@ -6,31 +6,47 @@ import { Card } from "@/components/ui/card";
 import { Package, Tags, DollarSign, Users, TrendingUp, Loader2 } from "lucide-react";
 
 export default function HomePage() {
-  const [categoryCount, setCategoryCount] = useState<number | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState({
+    products: 0,
+    categories: 0,
+    loading: true,
+  });
 
   useEffect(() => {
-    // Consumimos el endpoint que ya tenés listo en NestJS
-    fetch("http://localhost:3001/categories")
-      .then((res) => res.json())
-      .then((data) => {
-        setCategoryCount(data.length); // Contamos los elementos del array
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error("Error al cargar métricas:", err);
-        setLoading(false);
-      });
+    async function fetchStats() {
+      try {
+        // Ejecutamos ambos fetches al mismo tiempo (Senior Approach)
+        const [prodRes, catRes] = await Promise.all([
+          fetch("http://localhost:3001/products"),
+          fetch("http://localhost:3001/categories")
+        ]);
+
+        const products = await prodRes.json();
+        const categories = await catRes.json();
+
+        setStats({
+          products: products.length,
+          categories: categories.length,
+          loading: false,
+        });
+      } catch (error) {
+        console.error("Error cargando estadísticas:", error);
+        setStats((prev) => ({ ...prev, loading: false }));
+      }
+    }
+
+    fetchStats();
   }, []);
 
   return (
     <div className="space-y-8">
       <div>
         <h2 className="text-3xl font-bold tracking-tight text-slate-900">Dashboard</h2>
-        <p className="text-slate-500">Bienvenida de nuevo, Victoria. Resumen general de la tienda.</p>
+        <p className="text-slate-500">Bienvenida de nuevo, Victoria. Aquí tienes el resumen real de tu tienda.</p>
       </div>
       
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+        {/* Ventas Totales (Aún estático hasta que hagamos el módulo de Ventas) */}
         <StatCard 
           title="Ventas Totales" 
           value="$0.00" 
@@ -39,21 +55,25 @@ export default function HomePage() {
           iconBgClass="bg-green-50" 
         />
         
+        {/* Productos Dinámico */}
         <StatCard 
           title="Productos" 
-          value="0" 
+          value={stats.loading ? "..." : stats.products} 
           icon={Package} 
+          description={stats.loading ? "Cargando..." : "Items en inventario"}
         />
         
+        {/* Categorías Dinámico */}
         <StatCard 
           title="Categorías" 
-          value={loading ? "..." : categoryCount ?? 0} 
+          value={stats.loading ? "..." : stats.categories} 
           icon={Tags} 
           iconColorClass="text-purple-600" 
           iconBgClass="bg-purple-50" 
-          description={loading ? "Cargando..." : "Categorías activas"}
+          description={stats.loading ? "Cargando..." : "Organizadas por tipo"}
         />
         
+        {/* Usuarios (Estático por ahora) */}
         <StatCard 
           title="Usuarios" 
           value="1" 
@@ -64,17 +84,17 @@ export default function HomePage() {
       </div>
 
       <Card className="shadow-sm border-slate-200 p-8 flex flex-col items-center justify-center text-center space-y-3 bg-slate-50/50 border-dashed">
-        {loading ? (
-          <Loader2 className="h-8 w-8 text-blue-500 animate-spin" />
-        ) : (
+        <div className="p-4 bg-white rounded-full shadow-sm">
           <TrendingUp className="h-8 w-8 text-slate-400" />
-        )}
-        <h3 className="font-semibold text-slate-900">Actividad Reciente</h3>
-        <p className="text-sm text-slate-500">
-          {categoryCount && categoryCount > 0 
-            ? `Tienes ${categoryCount} categorías configuradas correctamente.` 
-            : "Comienza creando tu primera categoría en el panel lateral."}
-        </p>
+        </div>
+        <div>
+          <h3 className="font-semibold text-slate-900">Resumen de Actividad</h3>
+          <p className="text-sm text-slate-500 max-w-xs">
+            {stats.loading 
+              ? "Calculando métricas..." 
+              : `Actualmente tienes ${stats.products} productos distribuidos en ${stats.categories} categorías.`}
+          </p>
+        </div>
       </Card>
     </div>
   );
