@@ -23,6 +23,7 @@ model Product {
   name        String
   description String?
   price       Float
+  stock       Int      @default(0) // <--- AGREGÁ ESTA LÍNEA
   categoryId  String
   category    Category @relation(fields: [categoryId], references: [id])
   createdAt   DateTime @default(now())
