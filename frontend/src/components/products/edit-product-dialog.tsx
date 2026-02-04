@@ -2,21 +2,32 @@
 
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { ProductForm } from "../../components/products/product-form";
+import { ProductForm } from "./product-form";
+import { Product, Category, CreateProductInput } from "@/types";
 
-export function EditProductDialog({ product, isOpen, onClose, onProductUpdated }: any) {
-  const [categories, setCategories] = useState([]);
+interface EditProductProps {
+  product: Product | null;
+  isOpen: boolean;
+  onClose: () => void;
+  onProductUpdated: () => void;
+}
+
+export function EditProductDialog({ product, isOpen, onClose, onProductUpdated }: EditProductProps) {
+  const [categories, setCategories] = useState<Category[]>([]); 
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
       fetch("http://localhost:3001/categories")
         .then(res => res.json())
-        .then(data => setCategories(data));
+        .then(data => setCategories(data))
+        .catch(err => console.error("Error al cargar categorías:", err));
     }
   }, [isOpen]);
 
-  const handleSubmit = async (formData: any) => {
+  const handleSubmit = async (formData: CreateProductInput) => {
+    if (!product) return;
+    
     setIsLoading(true);
     try {
       const res = await fetch(`http://localhost:3001/products/${product.id}`, {
@@ -30,7 +41,7 @@ export function EditProductDialog({ product, isOpen, onClose, onProductUpdated }
         onClose();
       }
     } catch (err) {
-      console.error(err);
+      console.error("Error al actualizar producto:", err);
     } finally {
       setIsLoading(false);
     }
@@ -38,10 +49,13 @@ export function EditProductDialog({ product, isOpen, onClose, onProductUpdated }
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-125 rounded-2xl border-slate-200 shadow-xl">
         <DialogHeader>
-          <DialogTitle>Editar Producto</DialogTitle>
+          <DialogTitle className="text-xl font-bold text-slate-800">
+            Editar Producto: <span className="text-[#728d84]">{product?.name}</span>
+          </DialogTitle>
         </DialogHeader>
+        
         <ProductForm 
           categories={categories} 
           initialData={product} 

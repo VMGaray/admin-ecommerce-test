@@ -18,15 +18,12 @@ export default function RootLayout({
   return (
     <html lang="es">
       <body className={`${inter.className} bg-slate-50 flex`}>
-        {/* El Sidebar queda fijo a la izquierda */}
         <Sidebar />
-        
-        {/* El contenido principal tiene un margen izquierdo de 64 (w-64 del sidebar) */}
-        <main className="flex-1 ml-64 min-h-screen p-8">
-          <div className="max-w-6xl mx-auto">
-            {children}
-          </div>
-        </main>
+       <main className="flex-1 ml-64 min-h-screen p-8">
+        <div className="max-w-6xl mx-auto">
+         {children}
+        </div>
+       </main>
       </body>
     </html>
   );

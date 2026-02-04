@@ -7,7 +7,6 @@ import { CreateCategoryDialog } from "@/components/categories/CreateCategoryDial
 export default function CategoriesPage() {
   const [refreshKey, setRefreshKey] = useState(0);
 
-  // Esta función incrementa la llave para forzar a la tabla a recargar los datos
   const handleRefresh = () => setRefreshKey((prev) => prev + 1);
 
   return (
@@ -17,13 +16,9 @@ export default function CategoriesPage() {
           <h2 className="text-3xl font-bold tracking-tight text-slate-900">Categorías</h2>
           <p className="text-slate-500 text-sm">Gestiona las categorías de tus productos.</p>
         </div>
-        
-        {/* Usamos el componente reutilizable que creamos */}
-        <CreateCategoryDialog onCategoryCreated={handleRefresh} />
+          <CreateCategoryDialog onCategoryCreated={handleRefresh} />
       </div>
-
-      {/* Pasamos el refreshKey para que la lista sepa cuándo actualizarse */}
-      <CategoryList refreshKey={refreshKey} onRefresh={handleRefresh} />
+          <CategoryList refreshKey={refreshKey} onRefresh={handleRefresh} />
     </div>
   );
 }

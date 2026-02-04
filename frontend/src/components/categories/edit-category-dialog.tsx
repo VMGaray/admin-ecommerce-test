@@ -6,11 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
-
-interface Category {
-  id: string;
-  name: string;
-}
+import { Category } from "@/types";
 
 interface EditCategoryProps {
   category: Category | null;
@@ -23,7 +19,6 @@ export function EditCategoryDialog({ category, isOpen, onClose, onCategoryUpdate
   const [name, setName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  // Sincronizamos el estado interno con la categoría seleccionada
   useEffect(() => {
     if (category) setName(category.name);
   }, [category]);
@@ -35,14 +30,14 @@ export function EditCategoryDialog({ category, isOpen, onClose, onCategoryUpdate
     setIsLoading(true);
     try {
       const res = await fetch(`http://localhost:3001/categories/${category.id}`, {
-        method: "PATCH", // Usamos PATCH para actualizaciones parciales
+        method: "PATCH", 
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name }),
+        body: JSON.stringify({ name: name.trim() }),
       });
 
       if (res.ok) {
-        onCategoryUpdated(); // Refrescamos la lista en el padre
-        onClose(); // Cerramos el modal
+        onCategoryUpdated(); 
+        onClose(); 
       }
     } catch (err) {
       console.error("Error al actualizar categoría:", err);
@@ -51,31 +46,56 @@ export function EditCategoryDialog({ category, isOpen, onClose, onCategoryUpdate
     }
   };
 
+  const focusClasses = "focus-visible:ring-[#728d84] focus:ring-[#728d84]";
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent>
+      <DialogContent className="sm:max-w-106.25 rounded-2xl">
         <form onSubmit={handleUpdate}>
           <DialogHeader>
-            <DialogTitle>Editar Categoría</DialogTitle>
+            <DialogTitle className="text-xl font-bold text-slate-800">Editar Categoría</DialogTitle>
           </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="edit-name" className="text-right">Nombre</Label>
+          
+          <div className="grid gap-4 py-6">
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="edit-name" className="text-slate-700 font-semibold ml-1">
+                Nombre de la Categoría
+              </Label>
               <Input 
                 id="edit-name" 
                 value={name} 
                 onChange={(e) => setName(e.target.value)} 
-                className="col-span-3"
+                className={`bg-slate-50 border-slate-200 h-11 ${focusClasses}`}
+                placeholder="Ej: Electrónica"
+                disabled={isLoading}
               />
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" type="button" onClick={onClose} disabled={isLoading}>
+
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button 
+              variant="outline" 
+              type="button" 
+              onClick={onClose} 
+              disabled={isLoading}
+              className="rounded-xl border-slate-200"
+            >
               Cancelar
             </Button>
-            <Button type="submit" disabled={isLoading}>
-              {isLoading && <Loader2 className="animate-spin mr-2" size={16} />}
-              Guardar Cambios
+        
+            <Button 
+              type="submit" 
+              disabled={isLoading || !name.trim()}
+              className="bg-[#728d84] hover:bg-[#617971] text-white font-bold px-6 rounded-xl shadow-md transition-all active:scale-[0.98]"
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="animate-spin mr-2" size={18} />
+                  Actualizando...
+                </>
+              ) : (
+                "Guardar Cambios"
+              )}
             </Button>
           </DialogFooter>
         </form>

@@ -2,52 +2,62 @@
 
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
-import { ProductForm } from "./product-form"; // El que armamos antes
+import { ProductForm } from "./product-form";
+import { CreateProductInput } from "@/types";
 
 export function CreateProductDialog({ onProductCreated }: { onProductCreated: () => void }) {
   const [isOpen, setIsOpen] = useState(false);
   const [categories, setCategories] = useState([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Cargamos las categorías para el Select
   useEffect(() => {
     if (isOpen) {
       fetch("http://localhost:3001/categories")
         .then(res => res.json())
-        .then(data => setCategories(data));
+        .then(data => setCategories(data))
+        .catch(err => console.error("Error cargando categorías:", err));
     }
   }, [isOpen]);
 
-  const handleSubmit = async (formData: any) => {
-    const res = await fetch("http://localhost:3001/products", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(formData),
-    });
+  const handleSubmit = async (formData: CreateProductInput) => {
+    setIsSubmitting(true);
+    try {
+       const res = await fetch("http://localhost:3001/products", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
 
-    if (res.ok) {
-      onProductCreated();
-      setIsOpen(false);
+      if (res.ok) {
+        onProductCreated(); 
+        setIsOpen(false); 
+      } else {
+        console.error("Error al crear el producto");
+      }
+    } catch (err) {
+      console.error("Error en la conexión:", err);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button className="bg-blue-600 hover:bg-blue-700">
-          <Plus className="mr-2 h-4 w-4" /> Nuevo Producto
-        </Button>
+        <button className="flex items-center gap-2 bg-[#728d84] hover:bg-[#617971] text-white px-4 py-2 rounded-xl shadow-md transition-all font-medium active:scale-95 text-sm">
+          <Plus size={18} /> Nuevo Producto
+        </button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-125 rounded-2xl">
         <DialogHeader>
-          <DialogTitle>Agregar Producto</DialogTitle>
+          <DialogTitle className="text-xl font-bold text-slate-800">Crear Nuevo Producto</DialogTitle>
         </DialogHeader>
-        {/* Reutilizamos el formulario que definimos */}
+        
         <ProductForm 
           categories={categories} 
           onSubmit={handleSubmit} 
-          isLoading={false} 
+          isLoading={isSubmitting} 
         />
       </DialogContent>
     </Dialog>

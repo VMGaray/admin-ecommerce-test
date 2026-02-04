@@ -6,20 +6,13 @@ import { Button } from "@/components/ui/button";
 import { Loader2, Trash2, Edit } from "lucide-react";
 import { ConfirmDeleteDialog } from "../shared/confirm-delete-dialog";
 import { EditCategoryDialog } from "./edit-category-dialog";
-
-interface Category {
-  id: string;
-  name: string;
-}
+import { Category } from "@/types";
 
 export function CategoryList({ refreshKey, onRefresh }: { refreshKey: number, onRefresh: () => void }) {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   
-  // Estados para Eliminar
   const [categoryToDelete, setCategoryToDelete] = useState<Category | null>(null);
-  
-  // Estados para Editar
   const [categoryToEdit, setCategoryToEdit] = useState<Category | null>(null);
 
   const fetchCategories = async () => {
@@ -49,11 +42,11 @@ export function CategoryList({ refreshKey, onRefresh }: { refreshKey: number, on
 
   return (
     <>
-      <div className="rounded-md border bg-white shadow-sm overflow-hidden">
-        <Table>
+      <div className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden overflow-x-auto">
+        <Table className="min-w-150 md:min-w-full">
           <TableHeader className="bg-slate-50">
             <TableRow>
-              <TableHead className="w-[100px]">ID (Resumen)</TableHead>
+              <TableHead className="w-24">ID</TableHead>
               <TableHead>Nombre</TableHead>
               <TableHead className="text-right">Acciones</TableHead>
             </TableRow>
@@ -62,18 +55,20 @@ export function CategoryList({ refreshKey, onRefresh }: { refreshKey: number, on
             {loading ? (
               <TableRow>
                 <TableCell colSpan={3} className="text-center h-32">
-                  <Loader2 className="animate-spin inline mr-2 text-blue-600"/> Cargando...
+                  <Loader2 className="animate-spin inline mr-2 text-[#728d84]"/> Cargando...
                 </TableCell>
               </TableRow>
             ) : categories.map((cat) => (
               <TableRow key={cat.id} className="hover:bg-slate-50/50 transition-colors">
-                <TableCell className="font-mono text-[10px] text-slate-400">{cat.id.split('-')[0]}...</TableCell>
+                <TableCell className="font-mono text-[10px] text-slate-400">
+                  {cat.id.split('-')[0]}...
+                </TableCell>
                 <TableCell className="font-medium text-slate-700">{cat.name}</TableCell>
                 <TableCell className="text-right space-x-1">
                   <Button 
                     variant="ghost" 
                     size="icon" 
-                    className="h-8 w-8 text-blue-600 hover:bg-blue-50"
+                    className="h-8 w-8 text-[#728d84] hover:bg-green-50"
                     onClick={() => setCategoryToEdit(cat)}
                   >
                     <Edit size={16} />
@@ -93,7 +88,6 @@ export function CategoryList({ refreshKey, onRefresh }: { refreshKey: number, on
         </Table>
       </div>
 
-      {/* Modales Reutilizables */}
       <EditCategoryDialog 
         category={categoryToEdit}
         isOpen={!!categoryToEdit}

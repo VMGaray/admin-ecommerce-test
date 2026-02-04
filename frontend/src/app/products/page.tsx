@@ -16,13 +16,9 @@ export default function ProductsPage() {
           <h2 className="text-3xl font-bold tracking-tight text-slate-900">Productos</h2>
           <p className="text-slate-500 text-sm">Gestiona el inventario y precios de tu tienda.</p>
         </div>
-        
-        {/* Modal para crear productos */}
-        <CreateProductDialog onProductCreated={handleRefresh} />
+          <CreateProductDialog onProductCreated={handleRefresh} />
       </div>
-
-      {/* Lista de productos con la tabla */}
-      <ProductList refreshKey={refreshKey} onRefresh={handleRefresh} />
+          <ProductList refreshKey={refreshKey} onRefresh={handleRefresh} />
     </div>
   );
 }
