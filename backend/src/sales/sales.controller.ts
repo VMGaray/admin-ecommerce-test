@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body } from '@nestjs/common';
+import { Controller, Get, Post, Body } from '@nestjs/common'; // Asegurate de que 'Get' esté aquí
 import { SalesService } from './sales.service';
 import { CreateSaleDto } from './dto/create-sale.dto';
 
@@ -14,5 +14,11 @@ export class SalesController {
   @Get()
   findAll() {
     return this.salesService.findAll();
+  }
+
+  // REQUERIMIENTO: Endpoint para las métricas del Dashboard
+  @Get('analytics')
+  getAnalytics() {
+    return this.salesService.getAnalytics();
   }
 }
