@@ -1,36 +1,29 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { PlusCircle, Loader2 } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { PlusCircle } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { CategoryForm, CategoryFormValues } from "./CategoryForm";
 
 export function CreateCategoryDialog({ onCategoryCreated }: { onCategoryCreated: () => void }) {
   const [open, setOpen] = useState(false);
-  const [name, setName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!name.trim()) return;
-
+  const handleSubmit = async (formData: CategoryFormValues) => {
     setIsLoading(true);
     try {
       const res = await fetch("http://localhost:3001/categories", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: name.trim() }),
+        body: JSON.stringify(formData),
       });
 
       if (res.ok) {
-        setName("");
         setOpen(false);
         onCategoryCreated();
       } else {
         const errorData = await res.json();
-        console.error("Respuesta del servidor (Error):", errorData.message); 
+        console.error("Error del servidor:", errorData.message); 
       }
     } catch (err) {
       console.error("Error de conexión:", err);
@@ -38,8 +31,6 @@ export function CreateCategoryDialog({ onCategoryCreated }: { onCategoryCreated:
       setIsLoading(false);
     }
   };
-
-  const focusClasses = "focus-visible:ring-[#728d84] focus:ring-[#728d84]";
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -49,43 +40,16 @@ export function CreateCategoryDialog({ onCategoryCreated }: { onCategoryCreated:
         </button>
       </DialogTrigger>
       
-      <DialogContent className="sm:max-w-106.25 rounded-2xl">
-        <form onSubmit={handleSubmit}>
-          <DialogHeader>
-            <DialogTitle className="text-xl font-bold text-slate-800">Agregar Nueva Categoría</DialogTitle>
-          </DialogHeader>
-          
-          <div className="grid gap-4 py-6">
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="name" className="text-slate-700 font-semibold ml-1">Nombre</Label>
-              <Input 
-                id="name" 
-                value={name} 
-                onChange={(e) => setName(e.target.value)} 
-                className={`bg-slate-50 border-slate-200 h-11 ${focusClasses}`}
-                placeholder="Ej: Electrónica, Hogar..."
-                disabled={isLoading}
-              />
-            </div>
-          </div>
-
-          <DialogFooter>
-            <Button 
-              type="submit" 
-              className="w-full bg-[#728d84] hover:bg-[#617971] text-white font-bold h-11 rounded-xl shadow-lg transition-all active:scale-[0.98]"
-              disabled={isLoading || !name.trim()}
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="animate-spin mr-2" size={18} />
-                  Guardando...
-                </>
-              ) : (
-                "Guardar Categoría"
-              )}
-            </Button>
-          </DialogFooter>
-        </form>
+      <DialogContent className="sm:max-w-100 rounded-2xl border-slate-200">
+        <DialogHeader>
+          <DialogTitle className="text-xl font-bold text-slate-800">Agregar Nueva Categoría</DialogTitle>
+        </DialogHeader>
+         <div className="py-4">
+          <CategoryForm 
+            onSubmit={handleSubmit} 
+            isLoading={isLoading} 
+          />
+        </div>
       </DialogContent>
     </Dialog>
   );

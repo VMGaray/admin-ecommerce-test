@@ -4,7 +4,8 @@ import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Plus } from "lucide-react";
 import { ProductForm } from "./product-form";
-import { CreateProductInput } from "@/types";
+import { CreateProductInput,} from "@/types";
+
 
 export function CreateProductDialog({ onProductCreated }: { onProductCreated: () => void }) {
   const [isOpen, setIsOpen] = useState(false);

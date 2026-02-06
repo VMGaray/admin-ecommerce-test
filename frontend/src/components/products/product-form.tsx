@@ -5,115 +5,77 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea"; 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Loader2 } from "lucide-react";
+import { Category } from "@/types";
 
-// Importamos los tipos centralizados
-import { Product, Category } from "@/types";
-
-// Esquema corregido: Evitamos z.any() para que TypeScript no pierda el rastro de los tipos
 const productSchema = z.object({
   name: z.string().min(3, "Mínimo 3 caracteres"),
-  price: z.preprocess(
-    (val) => {
-      if (typeof val === 'string') return Number(val.replace(/\./g, '').replace(',', '.'));
-      return val;
-    },
-    z.number().min(0.01, "El precio debe ser mayor a 0")
-  ),
-  stock: z.coerce.number().int().min(0, "No puede ser negativo"),
-  description: z.string().optional().or(z.literal('')), 
-  categoryId: z.string().min(1, "Selecciona una categoría"),
+  price: z.preprocess((val) => Number(val), z.number().min(0.01, "Precio requerido")),
+  categoryId: z.string().min(1, "Seleccioná una categoría"),
+  imageUrl: z.string().url("URL inválida").optional().or(z.literal("")),
+  stock: z.preprocess((val) => Number(val), z.number().min(0).optional().default(0)),
 });
 
 export type ProductFormValues = z.infer<typeof productSchema>;
 
 interface ProductFormProps {
-  categories: Category[]; // Usamos el tipo global
+  categories: Category[];
   onSubmit: (data: ProductFormValues) => void;
-  initialData?: Product | null; // Eliminamos el any
+  initialData?: Partial<ProductFormValues>;
   isLoading: boolean;
 }
 
 export function ProductForm({ categories, onSubmit, initialData, isLoading }: ProductFormProps) {
-  const { register, handleSubmit, setValue, formState: { errors } } = useForm<ProductFormValues>({
+  const { register, handleSubmit, formState: { errors }, setValue } = useForm<ProductFormValues>({
     resolver: zodResolver(productSchema),
-    /* LÍNEA 42 & 46 FIX: Definimos valores iniciales seguros. 
-       Cambiamos el 'as any' por una conversión de tipo controlada.
-    */
-    defaultValues: initialData ? {
-      name: initialData.name,
-      price: initialData.price as unknown as number, 
-      stock: initialData.stock,
-      description: initialData.description || "",
-      categoryId: initialData.categoryId
-    } : { name: "", price: 0, stock: 0, description: "", categoryId: "" },
+    defaultValues: initialData || { name: "", price: 0, stock: 0, categoryId: "" },
   });
 
-  const focusClasses = "focus-visible:ring-[#728d84] focus:ring-[#728d84] border-slate-200";
-
   return (
-    /* LÍNEA 57 FIX: Ahora los tipos coinciden perfectamente */
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-      <div className="space-y-2">
-        <Label htmlFor="name" className="text-slate-700 font-medium">Nombre del Producto</Label>
-        <Input id="name" {...register("name")} className={focusClasses} />
-        {errors.name && <p className="text-xs text-red-500 font-medium">{errors.name.message}</p>}
-      </div>
-
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="price" className="text-slate-700 font-medium">Precio</Label>
-          <Input 
-            id="price" 
-            type="text" 
-            {...register("price")} 
-            placeholder="Ej: 1.300.578" 
-            className={focusClasses}
-          />
-          {errors.price && <p className="text-xs text-red-500 font-medium">{errors.price.message}</p>}
+        <div className="space-y-2 col-span-2">
+          <Label>Nombre del Producto</Label>
+          <Input {...register("name")} className="rounded-xl focus-visible:ring-[#728d84]" />
+          {errors.name && <p className="text-xs text-red-500">{errors.name.message}</p>}
         </div>
+        
         <div className="space-y-2">
-          <Label htmlFor="stock" className="text-slate-700 font-medium">Stock</Label>
-          <Input id="stock" type="number" {...register("stock")} className={focusClasses} />
-          {errors.stock && <p className="text-xs text-red-500 font-medium">{errors.stock.message}</p>}
+          <Label>Precio ($)</Label>
+          <Input type="number" step="0.01" {...register("price")} className="rounded-xl focus-visible:ring-[#728d84]" />
+        </div>
+
+        <div className="space-y-2">
+          <Label>Categoría</Label>
+          <Select onValueChange={(val) => setValue("categoryId", val)} defaultValue={initialData?.categoryId}>
+            <SelectTrigger className="rounded-xl focus:ring-[#728d84]">
+              <SelectValue placeholder="Seleccionar..." />
+            </SelectTrigger>
+            <SelectContent>
+              {categories.map((cat) => (
+                <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
       <div className="space-y-2">
-        <Label className="text-slate-700 font-medium">Categoría</Label>
-        <Select 
-          onValueChange={(val) => setValue("categoryId", val)}
-          defaultValue={initialData?.categoryId}
-        >
-          <SelectTrigger className={focusClasses}>
-            <SelectValue placeholder="Selecciona una categoría..." />
-          </SelectTrigger>
-          <SelectContent>
-            {categories.map((c) => (
-              <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        {errors.categoryId && <p className="text-xs text-red-500 font-medium">{errors.categoryId.message}</p>}
+        <Label>URL de Imagen</Label>
+        <Input {...register("imageUrl")} className="rounded-xl focus-visible:ring-[#728d84]" placeholder="https://..." />
       </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="description" className="text-slate-700 font-medium">Descripción (Opcional)</Label>
-        <Textarea id="description" {...register("description")} className={`resize-none h-24 ${focusClasses}`} />
+      <div className="p-3 bg-green-50/50 rounded-xl border border-green-100">
+        <Label className="text-[#728d84] font-bold text-xs uppercase tracking-wider">Mejora: Control de Stock</Label>
+        <Input type="number" {...register("stock")} className="mt-2 bg-white rounded-lg border-green-200" />
       </div>
 
       <button 
         type="submit" 
         disabled={isLoading}
-        className="w-full bg-[#728d84] hover:bg-[#617971] text-white font-bold h-11 rounded-xl shadow-md transition-all active:scale-[0.98] flex items-center justify-center disabled:opacity-70"
+        className="w-full bg-[#728d84] hover:bg-[#617971] text-white font-bold h-11 rounded-xl transition-all flex items-center justify-center"
       >
-        {isLoading ? (
-          <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-        ) : (
-          initialData ? "Actualizar Producto" : "Guardar Producto"
-        )}
+        {isLoading ? <Loader2 className="animate-spin" /> : "Guardar Producto"}
       </button>
     </form>
   );

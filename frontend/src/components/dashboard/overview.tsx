@@ -64,15 +64,11 @@ export function Overview({ data }: OverviewProps) {
               fill={COLORS[index % COLORS.length]} 
             />
           ))}
-          
           <LabelList 
             dataKey="value" 
             position="top" 
-            formatter={(val: string | number) => {
-           const num = Number(val);
-           return num > 0 ? `$${(num / 1000).toFixed(1)}k` : "";
-           }}
-           style={{ fontSize: '10px', fill: '#64748b', fontWeight: 'bold' }}
+            formatter={(val: any) => val > 0 ? `$${(Number(val) / 1000).toFixed(1)}k` : ""}
+            style={{ fontSize: '10px', fill: '#64748b' }}
           />
         </Bar>
       </BarChart>
